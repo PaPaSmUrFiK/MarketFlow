@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package identity.v1;
+
+option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/identity/v1;identityv1";
+
+import "identity/v1/common.proto";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc OAuthLogin(OAuthLoginRequest) returns (OAuthLoginResponse);
+  rpc Refresh(RefreshRequest) returns (RefreshResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+message RegisterRequest {
+  string app_id = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message RegisterResponse {
+  User user = 1;
+  AuthTokens tokens = 2;
+}
+
+message LoginRequest {
+  string app_id = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message LoginResponse {
+  AuthTokens tokens = 1;
+}
+
+message OAuthLoginRequest {
+  string app_id = 1;
+  string provider = 2;       // GOOGLE | GITHUB
+  string code = 3;
+  string redirect_uri = 4;
+}
+
+message OAuthLoginResponse {
+  AuthTokens tokens = 1;
+}
+
+message RefreshRequest {
+  string app_id = 1;
+  string refresh_token = 2;
+}
+
+message RefreshResponse {
+  AuthTokens tokens = 1;
+}
+
+message LogoutRequest {
+  string app_id = 1;
+  string refresh_token = 2;
+}
+
+message LogoutResponse {
+  bool success = 1;
+}

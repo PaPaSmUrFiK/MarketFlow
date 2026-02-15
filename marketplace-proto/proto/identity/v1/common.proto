@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package identity.v1;
+
+option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/identity/v1;identityv1";
+
+import "google/protobuf/timestamp.proto";
+
+message Application {
+  string id = 1;
+  string code = 2;              // buywise-web, buywise-admin
+  string name = 3;
+  bool active = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string status = 3;            // ACTIVE, BLOCKED, DELETED
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message Role {
+  string code = 1;
+  string description = 2;
+  string app_id = 3;
+}
+
+message Permission {
+  string code = 1;              // PRODUCT:READ
+  string description = 2;
+  string app_id = 3;
+}
+
+message AuthTokens {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp access_expires_at = 3;
+  google.protobuf.Timestamp refresh_expires_at = 4;
+}
+
+message Pagination {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message PageInfo {
+  int64 total = 1;
+}

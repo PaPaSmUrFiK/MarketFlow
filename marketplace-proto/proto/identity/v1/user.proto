@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package identity.v1;
+
+option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/identity/v1;identityv1";
+
+import "identity/v1/common.proto";
+
+service UserService {
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+  rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+}
+
+message GetMeRequest {
+  string app_id = 1;
+}
+
+message GetMeResponse {
+  User user = 1;
+  repeated string roles = 2;
+  repeated string permissions = 3;
+}
+
+message GetUserByIdRequest {
+  string app_id = 1;
+  string user_id = 2;
+}
+
+message GetUserByIdResponse {
+  User user = 1;
+  repeated string roles = 2;
+  repeated string permissions = 3;
+}
+
+message ChangePasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
+}
+
+message ChangePasswordResponse {
+  bool success = 1;
+}

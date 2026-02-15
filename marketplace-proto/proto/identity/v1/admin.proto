@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package identity.v1;
+
+option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/identity/v1;identityv1";
+
+import "identity/v1/common.proto";
+
+service AdminService {
+
+  // Application management
+  rpc CreateApplication(CreateApplicationRequest)
+      returns (CreateApplicationResponse);
+
+  // User management
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
+  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // Role management
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
+  rpc RemoveRole(RemoveRoleRequest) returns (RemoveRoleResponse);
+
+  // Permission management
+  rpc CreatePermission(CreatePermissionRequest)
+      returns (CreatePermissionResponse);
+  rpc AssignPermissionToRole(AssignPermissionToRoleRequest)
+      returns (AssignPermissionToRoleResponse);
+  rpc RemovePermissionFromRole(RemovePermissionFromRoleRequest)
+      returns (RemovePermissionFromRoleResponse);
+}
+
+message CreateApplicationRequest {
+  string code = 1;
+  string name = 2;
+}
+
+message CreateApplicationResponse {
+  Application application = 1;
+}
+
+message CreateUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message BlockUserRequest {
+  string user_id = 1;
+}
+
+message BlockUserResponse {
+  bool success = 1;
+}
+
+message UnblockUserRequest {
+  string user_id = 1;
+}
+
+message UnblockUserResponse {
+  bool success = 1;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+}
+
+message ListUsersRequest {
+  Pagination pagination = 1;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  PageInfo page_info = 2;
+}
+
+message CreateRoleRequest {
+  string app_id = 1;
+  string code = 2;
+  string description = 3;
+}
+
+message CreateRoleResponse {
+  Role role = 1;
+}
+
+message AssignRoleRequest {
+  string app_id = 1;
+  string user_id = 2;
+  string role = 3;
+}
+
+message AssignRoleResponse {
+  bool success = 1;
+}
+
+message RemoveRoleRequest {
+  string app_id = 1;
+  string user_id = 2;
+  string role = 3;
+}
+
+message RemoveRoleResponse {
+  bool success = 1;
+}
+
+message CreatePermissionRequest {
+  string app_id = 1;
+  string code = 2;        // PRODUCT:READ
+  string description = 3;
+}
+
+message CreatePermissionResponse {
+  Permission permission = 1;
+}
+
+message AssignPermissionToRoleRequest {
+  string app_id = 1;
+  string role = 2;
+  string permission = 3;
+}
+
+message AssignPermissionToRoleResponse {
+  bool success = 1;
+}
+
+message RemovePermissionFromRoleRequest {
+  string app_id = 1;
+  string role = 2;
+  string permission = 3;
+}
+
+message RemovePermissionFromRoleResponse {
+  bool success = 1;
+}
