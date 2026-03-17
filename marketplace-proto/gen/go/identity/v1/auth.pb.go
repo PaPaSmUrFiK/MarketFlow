@@ -21,11 +21,14 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Register
 type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	IpAddress     string                 `protobuf:"bytes,5,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -77,6 +80,20 @@ func (x *RegisterRequest) GetEmail() string {
 func (x *RegisterRequest) GetPassword() string {
 	if x != nil {
 		return x.Password
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
 	}
 	return ""
 }
@@ -133,11 +150,14 @@ func (x *RegisterResponse) GetTokens() *AuthTokens {
 	return nil
 }
 
+// Login
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	IpAddress     string                 `protobuf:"bytes,5,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -193,6 +213,20 @@ func (x *LoginRequest) GetPassword() string {
 	return ""
 }
 
+func (x *LoginRequest) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Tokens        *AuthTokens            `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
@@ -237,12 +271,15 @@ func (x *LoginResponse) GetTokens() *AuthTokens {
 	return nil
 }
 
+// OAuth Login — провайдер передаёт code, сервис обменивает его на токены
 type OAuthLoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
-	Provider      string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"` // GOOGLE | GITHUB
+	Provider      string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"` // google | github
 	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	RedirectUri   string                 `protobuf:"bytes,4,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,5,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	IpAddress     string                 `protobuf:"bytes,6,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -305,6 +342,20 @@ func (x *OAuthLoginRequest) GetRedirectUri() string {
 	return ""
 }
 
+func (x *OAuthLoginRequest) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *OAuthLoginRequest) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
 type OAuthLoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Tokens        *AuthTokens            `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
@@ -349,10 +400,11 @@ func (x *OAuthLoginResponse) GetTokens() *AuthTokens {
 	return nil
 }
 
+// Refresh — обновление пары токенов по refresh_token
+// app_id не нужен — он хранится внутри refresh_token в БД
 type RefreshRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
-	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -385,13 +437,6 @@ func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use RefreshRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRequest) Descriptor() ([]byte, []int) {
 	return file_identity_v1_auth_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *RefreshRequest) GetAppId() string {
-	if x != nil {
-		return x.AppId
-	}
-	return ""
 }
 
 func (x *RefreshRequest) GetRefreshToken() string {
@@ -445,10 +490,10 @@ func (x *RefreshResponse) GetTokens() *AuthTokens {
 	return nil
 }
 
+// Logout — завершить текущую сессию по session_id из access_token
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
-	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"` // uuid сессии из claims access_token
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -483,16 +528,9 @@ func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_identity_v1_auth_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *LogoutRequest) GetAppId() string {
+func (x *LogoutRequest) GetSessionId() string {
 	if x != nil {
-		return x.AppId
-	}
-	return ""
-}
-
-func (x *LogoutRequest) GetRefreshToken() string {
-	if x != nil {
-		return x.RefreshToken
+		return x.SessionId
 	}
 	return ""
 }
@@ -541,48 +579,274 @@ func (x *LogoutResponse) GetSuccess() bool {
 	return false
 }
 
+// LogoutAll — завершить все сессии пользователя в приложении
+type LogoutAllRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutAllRequest) Reset() {
+	*x = LogoutAllRequest{}
+	mi := &file_identity_v1_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutAllRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutAllRequest) ProtoMessage() {}
+
+func (x *LogoutAllRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutAllRequest.ProtoReflect.Descriptor instead.
+func (*LogoutAllRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *LogoutAllRequest) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+func (x *LogoutAllRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type LogoutAllResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutAllResponse) Reset() {
+	*x = LogoutAllResponse{}
+	mi := &file_identity_v1_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutAllResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutAllResponse) ProtoMessage() {}
+
+func (x *LogoutAllResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutAllResponse.ProtoReflect.Descriptor instead.
+func (*LogoutAllResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_auth_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *LogoutAllResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// Validate — проверить access_token (вызывается API Gateway на каждый запрос)
+type ValidateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateRequest) Reset() {
+	*x = ValidateRequest{}
+	mi := &file_identity_v1_auth_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateRequest) ProtoMessage() {}
+
+func (x *ValidateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_auth_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateRequest.ProtoReflect.Descriptor instead.
+func (*ValidateRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_auth_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ValidateRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+type ValidateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	AppId         string                 `protobuf:"bytes,2,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Roles         []string               `protobuf:"bytes,3,rep,name=roles,proto3" json:"roles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateResponse) Reset() {
+	*x = ValidateResponse{}
+	mi := &file_identity_v1_auth_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateResponse) ProtoMessage() {}
+
+func (x *ValidateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_auth_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateResponse.ProtoReflect.Descriptor instead.
+func (*ValidateResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_auth_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ValidateResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ValidateResponse) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+func (x *ValidateResponse) GetRoles() []string {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
 var File_identity_v1_auth_proto protoreflect.FileDescriptor
 
 const file_identity_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x16identity/v1/auth.proto\x12\videntity.v1\x1a\x18identity/v1/common.proto\"Z\n" +
+	"\x16identity/v1/auth.proto\x12\videntity.v1\x1a\x18identity/v1/common.proto\"\x98\x01\n" +
 	"\x0fRegisterRequest\x12\x15\n" +
 	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"j\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x04 \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x05 \x01(\tR\tipAddress\"j\n" +
 	"\x10RegisterResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.identity.v1.UserR\x04user\x12/\n" +
-	"\x06tokens\x18\x02 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"W\n" +
+	"\x06tokens\x18\x02 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"\x95\x01\n" +
 	"\fLoginRequest\x12\x15\n" +
 	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"@\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x04 \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x05 \x01(\tR\tipAddress\"@\n" +
 	"\rLoginResponse\x12/\n" +
-	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"}\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"\xbb\x01\n" +
 	"\x11OAuthLoginRequest\x12\x15\n" +
 	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x1a\n" +
 	"\bprovider\x18\x02 \x01(\tR\bprovider\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12!\n" +
-	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUri\"E\n" +
+	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUri\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x05 \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x06 \x01(\tR\tipAddress\"E\n" +
 	"\x12OAuthLoginResponse\x12/\n" +
-	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"L\n" +
-	"\x0eRefreshRequest\x12\x15\n" +
-	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12#\n" +
-	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\"B\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"5\n" +
+	"\x0eRefreshRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"B\n" +
 	"\x0fRefreshResponse\x12/\n" +
-	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"K\n" +
-	"\rLogoutRequest\x12\x15\n" +
-	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12#\n" +
-	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\"*\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\".\n" +
+	"\rLogoutRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\"*\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xee\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"B\n" +
+	"\x10LogoutAllRequest\x12\x15\n" +
+	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"-\n" +
+	"\x11LogoutAllResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"4\n" +
+	"\x0fValidateRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"X\n" +
+	"\x10ValidateResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x15\n" +
+	"\x06app_id\x18\x02 \x01(\tR\x05appId\x12\x14\n" +
+	"\x05roles\x18\x03 \x03(\tR\x05roles2\x83\x04\n" +
 	"\vAuthService\x12G\n" +
 	"\bRegister\x12\x1c.identity.v1.RegisterRequest\x1a\x1d.identity.v1.RegisterResponse\x12>\n" +
 	"\x05Login\x12\x19.identity.v1.LoginRequest\x1a\x1a.identity.v1.LoginResponse\x12M\n" +
 	"\n" +
 	"OAuthLogin\x12\x1e.identity.v1.OAuthLoginRequest\x1a\x1f.identity.v1.OAuthLoginResponse\x12D\n" +
 	"\aRefresh\x12\x1b.identity.v1.RefreshRequest\x1a\x1c.identity.v1.RefreshResponse\x12A\n" +
-	"\x06Logout\x12\x1a.identity.v1.LogoutRequest\x1a\x1b.identity.v1.LogoutResponseBSZQgithub.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/identity/v1;identityv1b\x06proto3"
+	"\x06Logout\x12\x1a.identity.v1.LogoutRequest\x1a\x1b.identity.v1.LogoutResponse\x12J\n" +
+	"\tLogoutAll\x12\x1d.identity.v1.LogoutAllRequest\x1a\x1e.identity.v1.LogoutAllResponse\x12G\n" +
+	"\bValidate\x12\x1c.identity.v1.ValidateRequest\x1a\x1d.identity.v1.ValidateResponseBSZQgithub.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/identity/v1;identityv1b\x06proto3"
 
 var (
 	file_identity_v1_auth_proto_rawDescOnce sync.Once
@@ -596,7 +860,7 @@ func file_identity_v1_auth_proto_rawDescGZIP() []byte {
 	return file_identity_v1_auth_proto_rawDescData
 }
 
-var file_identity_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_identity_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_identity_v1_auth_proto_goTypes = []any{
 	(*RegisterRequest)(nil),    // 0: identity.v1.RegisterRequest
 	(*RegisterResponse)(nil),   // 1: identity.v1.RegisterResponse
@@ -608,27 +872,35 @@ var file_identity_v1_auth_proto_goTypes = []any{
 	(*RefreshResponse)(nil),    // 7: identity.v1.RefreshResponse
 	(*LogoutRequest)(nil),      // 8: identity.v1.LogoutRequest
 	(*LogoutResponse)(nil),     // 9: identity.v1.LogoutResponse
-	(*User)(nil),               // 10: identity.v1.User
-	(*AuthTokens)(nil),         // 11: identity.v1.AuthTokens
+	(*LogoutAllRequest)(nil),   // 10: identity.v1.LogoutAllRequest
+	(*LogoutAllResponse)(nil),  // 11: identity.v1.LogoutAllResponse
+	(*ValidateRequest)(nil),    // 12: identity.v1.ValidateRequest
+	(*ValidateResponse)(nil),   // 13: identity.v1.ValidateResponse
+	(*User)(nil),               // 14: identity.v1.User
+	(*AuthTokens)(nil),         // 15: identity.v1.AuthTokens
 }
 var file_identity_v1_auth_proto_depIdxs = []int32{
-	10, // 0: identity.v1.RegisterResponse.user:type_name -> identity.v1.User
-	11, // 1: identity.v1.RegisterResponse.tokens:type_name -> identity.v1.AuthTokens
-	11, // 2: identity.v1.LoginResponse.tokens:type_name -> identity.v1.AuthTokens
-	11, // 3: identity.v1.OAuthLoginResponse.tokens:type_name -> identity.v1.AuthTokens
-	11, // 4: identity.v1.RefreshResponse.tokens:type_name -> identity.v1.AuthTokens
+	14, // 0: identity.v1.RegisterResponse.user:type_name -> identity.v1.User
+	15, // 1: identity.v1.RegisterResponse.tokens:type_name -> identity.v1.AuthTokens
+	15, // 2: identity.v1.LoginResponse.tokens:type_name -> identity.v1.AuthTokens
+	15, // 3: identity.v1.OAuthLoginResponse.tokens:type_name -> identity.v1.AuthTokens
+	15, // 4: identity.v1.RefreshResponse.tokens:type_name -> identity.v1.AuthTokens
 	0,  // 5: identity.v1.AuthService.Register:input_type -> identity.v1.RegisterRequest
 	2,  // 6: identity.v1.AuthService.Login:input_type -> identity.v1.LoginRequest
 	4,  // 7: identity.v1.AuthService.OAuthLogin:input_type -> identity.v1.OAuthLoginRequest
 	6,  // 8: identity.v1.AuthService.Refresh:input_type -> identity.v1.RefreshRequest
 	8,  // 9: identity.v1.AuthService.Logout:input_type -> identity.v1.LogoutRequest
-	1,  // 10: identity.v1.AuthService.Register:output_type -> identity.v1.RegisterResponse
-	3,  // 11: identity.v1.AuthService.Login:output_type -> identity.v1.LoginResponse
-	5,  // 12: identity.v1.AuthService.OAuthLogin:output_type -> identity.v1.OAuthLoginResponse
-	7,  // 13: identity.v1.AuthService.Refresh:output_type -> identity.v1.RefreshResponse
-	9,  // 14: identity.v1.AuthService.Logout:output_type -> identity.v1.LogoutResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
+	10, // 10: identity.v1.AuthService.LogoutAll:input_type -> identity.v1.LogoutAllRequest
+	12, // 11: identity.v1.AuthService.Validate:input_type -> identity.v1.ValidateRequest
+	1,  // 12: identity.v1.AuthService.Register:output_type -> identity.v1.RegisterResponse
+	3,  // 13: identity.v1.AuthService.Login:output_type -> identity.v1.LoginResponse
+	5,  // 14: identity.v1.AuthService.OAuthLogin:output_type -> identity.v1.OAuthLoginResponse
+	7,  // 15: identity.v1.AuthService.Refresh:output_type -> identity.v1.RefreshResponse
+	9,  // 16: identity.v1.AuthService.Logout:output_type -> identity.v1.LogoutResponse
+	11, // 17: identity.v1.AuthService.LogoutAll:output_type -> identity.v1.LogoutAllResponse
+	13, // 18: identity.v1.AuthService.Validate:output_type -> identity.v1.ValidateResponse
+	12, // [12:19] is the sub-list for method output_type
+	5,  // [5:12] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -646,7 +918,7 @@ func file_identity_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_v1_auth_proto_rawDesc), len(file_identity_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

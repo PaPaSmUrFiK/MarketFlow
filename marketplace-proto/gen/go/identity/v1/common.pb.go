@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Application — приложение в рамках которого действуют роли и сессии
 type Application struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -98,13 +99,13 @@ func (x *Application) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// User — базовый профиль без email (email хранится в user_credentials)
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"` // ACTIVE, BLOCKED, DELETED
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"` // ACTIVE | BLOCKED | DELETED
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -146,13 +147,6 @@ func (x *User) GetId() string {
 	return ""
 }
 
-func (x *User) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
-
 func (x *User) GetStatus() string {
 	if x != nil {
 		return x.Status
@@ -174,18 +168,113 @@ func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// UserProfile — расширенный профиль с email и ролями (для ответов GetMe / GetUserById)
+type UserProfile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Roles         []*Role                `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,5,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserProfile) Reset() {
+	*x = UserProfile{}
+	mi := &file_identity_v1_common_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserProfile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserProfile) ProtoMessage() {}
+
+func (x *UserProfile) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_common_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserProfile.ProtoReflect.Descriptor instead.
+func (*UserProfile) Descriptor() ([]byte, []int) {
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UserProfile) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UserProfile) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *UserProfile) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *UserProfile) GetRoles() []*Role {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *UserProfile) GetPermissions() []*Permission {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+func (x *UserProfile) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *UserProfile) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+// Role — роль привязана к конкретному приложению (app_id)
 type Role struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	AppId         string                 `protobuf:"bytes,3,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AppId         string                 `protobuf:"bytes,2,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"` // ADMIN, MODERATOR, USER
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_identity_v1_common_proto_msgTypes[2]
+	mi := &file_identity_v1_common_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -197,7 +286,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_common_proto_msgTypes[2]
+	mi := &file_identity_v1_common_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -210,7 +299,21 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_identity_v1_common_proto_rawDescGZIP(), []int{2}
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Role) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Role) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
 }
 
 func (x *Role) GetCode() string {
@@ -227,25 +330,20 @@ func (x *Role) GetDescription() string {
 	return ""
 }
 
-func (x *Role) GetAppId() string {
-	if x != nil {
-		return x.AppId
-	}
-	return ""
-}
-
+// Permission — разрешение привязано к конкретному приложению
 type Permission struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"` // PRODUCT:READ
-	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	AppId         string                 `protobuf:"bytes,3,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AppId         string                 `protobuf:"bytes,2,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"` // PRODUCT:READ, ORDER:WRITE
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Permission) Reset() {
 	*x = Permission{}
-	mi := &file_identity_v1_common_proto_msgTypes[3]
+	mi := &file_identity_v1_common_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +355,7 @@ func (x *Permission) String() string {
 func (*Permission) ProtoMessage() {}
 
 func (x *Permission) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_common_proto_msgTypes[3]
+	mi := &file_identity_v1_common_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +368,21 @@ func (x *Permission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Permission.ProtoReflect.Descriptor instead.
 func (*Permission) Descriptor() ([]byte, []int) {
-	return file_identity_v1_common_proto_rawDescGZIP(), []int{3}
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Permission) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Permission) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
 }
 
 func (x *Permission) GetCode() string {
@@ -287,13 +399,92 @@ func (x *Permission) GetDescription() string {
 	return ""
 }
 
-func (x *Permission) GetAppId() string {
+// Session — активная сессия пользователя
+type Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AppId         string                 `protobuf:"bytes,2,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,3,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	IpAddress     string                 `protobuf:"bytes,4,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_identity_v1_common_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_common_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Session) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Session) GetAppId() string {
 	if x != nil {
 		return x.AppId
 	}
 	return ""
 }
 
+func (x *Session) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *Session) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
+func (x *Session) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *Session) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+// AuthTokens — пара токенов после логина / регистрации / рефреша
 type AuthTokens struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
@@ -306,7 +497,7 @@ type AuthTokens struct {
 
 func (x *AuthTokens) Reset() {
 	*x = AuthTokens{}
-	mi := &file_identity_v1_common_proto_msgTypes[4]
+	mi := &file_identity_v1_common_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -318,7 +509,7 @@ func (x *AuthTokens) String() string {
 func (*AuthTokens) ProtoMessage() {}
 
 func (x *AuthTokens) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_common_proto_msgTypes[4]
+	mi := &file_identity_v1_common_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -331,7 +522,7 @@ func (x *AuthTokens) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthTokens.ProtoReflect.Descriptor instead.
 func (*AuthTokens) Descriptor() ([]byte, []int) {
-	return file_identity_v1_common_proto_rawDescGZIP(), []int{4}
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AuthTokens) GetAccessToken() string {
@@ -362,6 +553,7 @@ func (x *AuthTokens) GetRefreshExpiresAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// Pagination — параметры постраничной выборки
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -372,7 +564,7 @@ type Pagination struct {
 
 func (x *Pagination) Reset() {
 	*x = Pagination{}
-	mi := &file_identity_v1_common_proto_msgTypes[5]
+	mi := &file_identity_v1_common_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -384,7 +576,7 @@ func (x *Pagination) String() string {
 func (*Pagination) ProtoMessage() {}
 
 func (x *Pagination) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_common_proto_msgTypes[5]
+	mi := &file_identity_v1_common_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -397,7 +589,7 @@ func (x *Pagination) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Pagination.ProtoReflect.Descriptor instead.
 func (*Pagination) Descriptor() ([]byte, []int) {
-	return file_identity_v1_common_proto_rawDescGZIP(), []int{5}
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Pagination) GetPage() int32 {
@@ -414,6 +606,7 @@ func (x *Pagination) GetSize() int32 {
 	return 0
 }
 
+// PageInfo — мета-информация постраничного ответа
 type PageInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
@@ -423,7 +616,7 @@ type PageInfo struct {
 
 func (x *PageInfo) Reset() {
 	*x = PageInfo{}
-	mi := &file_identity_v1_common_proto_msgTypes[6]
+	mi := &file_identity_v1_common_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -435,7 +628,7 @@ func (x *PageInfo) String() string {
 func (*PageInfo) ProtoMessage() {}
 
 func (x *PageInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_common_proto_msgTypes[6]
+	mi := &file_identity_v1_common_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -448,7 +641,7 @@ func (x *PageInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PageInfo.ProtoReflect.Descriptor instead.
 func (*PageInfo) Descriptor() ([]byte, []int) {
-	return file_identity_v1_common_proto_rawDescGZIP(), []int{6}
+	return file_identity_v1_common_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *PageInfo) GetTotal() int64 {
@@ -469,24 +662,46 @@ const file_identity_v1_common_proto_rawDesc = "" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
 	"\x06active\x18\x04 \x01(\bR\x06active\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xba\x01\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xa4\x01\n" +
 	"\x04User\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x129\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa5\x02\n" +
+	"\vUserProfile\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x16\n" +
-	"\x06status\x18\x03 \x01(\tR\x06status\x129\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12'\n" +
+	"\x05roles\x18\x04 \x03(\v2\x11.identity.v1.RoleR\x05roles\x129\n" +
+	"\vpermissions\x18\x05 \x03(\v2\x17.identity.v1.PermissionR\vpermissions\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"S\n" +
-	"\x04Role\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x15\n" +
-	"\x06app_id\x18\x03 \x01(\tR\x05appId\"Y\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"c\n" +
+	"\x04Role\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x15\n" +
+	"\x06app_id\x18\x02 \x01(\tR\x05appId\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"i\n" +
 	"\n" +
-	"Permission\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x15\n" +
-	"\x06app_id\x18\x03 \x01(\tR\x05appId\"\xe6\x01\n" +
+	"Permission\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x15\n" +
+	"\x06app_id\x18\x02 \x01(\tR\x05appId\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\xe4\x01\n" +
+	"\aSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x15\n" +
+	"\x06app_id\x18\x02 \x01(\tR\x05appId\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x03 \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x04 \x01(\tR\tipAddress\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\xe6\x01\n" +
 	"\n" +
 	"AuthTokens\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
@@ -512,28 +727,36 @@ func file_identity_v1_common_proto_rawDescGZIP() []byte {
 	return file_identity_v1_common_proto_rawDescData
 }
 
-var file_identity_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_identity_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_identity_v1_common_proto_goTypes = []any{
 	(*Application)(nil),           // 0: identity.v1.Application
 	(*User)(nil),                  // 1: identity.v1.User
-	(*Role)(nil),                  // 2: identity.v1.Role
-	(*Permission)(nil),            // 3: identity.v1.Permission
-	(*AuthTokens)(nil),            // 4: identity.v1.AuthTokens
-	(*Pagination)(nil),            // 5: identity.v1.Pagination
-	(*PageInfo)(nil),              // 6: identity.v1.PageInfo
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*UserProfile)(nil),           // 2: identity.v1.UserProfile
+	(*Role)(nil),                  // 3: identity.v1.Role
+	(*Permission)(nil),            // 4: identity.v1.Permission
+	(*Session)(nil),               // 5: identity.v1.Session
+	(*AuthTokens)(nil),            // 6: identity.v1.AuthTokens
+	(*Pagination)(nil),            // 7: identity.v1.Pagination
+	(*PageInfo)(nil),              // 8: identity.v1.PageInfo
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
 }
 var file_identity_v1_common_proto_depIdxs = []int32{
-	7, // 0: identity.v1.Application.created_at:type_name -> google.protobuf.Timestamp
-	7, // 1: identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	7, // 2: identity.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	7, // 3: identity.v1.AuthTokens.access_expires_at:type_name -> google.protobuf.Timestamp
-	7, // 4: identity.v1.AuthTokens.refresh_expires_at:type_name -> google.protobuf.Timestamp
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	9,  // 0: identity.v1.Application.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 1: identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 2: identity.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	3,  // 3: identity.v1.UserProfile.roles:type_name -> identity.v1.Role
+	4,  // 4: identity.v1.UserProfile.permissions:type_name -> identity.v1.Permission
+	9,  // 5: identity.v1.UserProfile.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 6: identity.v1.UserProfile.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 7: identity.v1.Session.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 8: identity.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	9,  // 9: identity.v1.AuthTokens.access_expires_at:type_name -> google.protobuf.Timestamp
+	9,  // 10: identity.v1.AuthTokens.refresh_expires_at:type_name -> google.protobuf.Timestamp
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_identity_v1_common_proto_init() }
@@ -547,7 +770,7 @@ func file_identity_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_v1_common_proto_rawDesc), len(file_identity_v1_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

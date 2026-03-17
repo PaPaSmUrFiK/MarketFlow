@@ -8,33 +8,34 @@ import "identity/v1/common.proto";
 
 service AdminService {
 
-  // Application management
-  rpc CreateApplication(CreateApplicationRequest)
-      returns (CreateApplicationResponse);
+  // ── Applications ──────────────────────────────────────────────────────────
+  rpc CreateApplication (CreateApplicationRequest) returns (CreateApplicationResponse);
 
-  // User management
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
-  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse);
-  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // ── Users ─────────────────────────────────────────────────────────────────
+  rpc CreateUser     (CreateUserRequest)     returns (CreateUserResponse);
+  rpc BlockUser      (BlockUserRequest)      returns (BlockUserResponse);
+  rpc UnblockUser    (UnblockUserRequest)    returns (UnblockUserResponse);
+  rpc DeleteUser     (DeleteUserRequest)     returns (DeleteUserResponse);
+  rpc ListUsers      (ListUsersRequest)      returns (ListUsersResponse);
+  rpc GetUserDetails (GetUserDetailsRequest) returns (GetUserDetailsResponse);
 
-  // Role management
-  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
-  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
-  rpc RemoveRole(RemoveRoleRequest) returns (RemoveRoleResponse);
+  // ── Roles ─────────────────────────────────────────────────────────────────
+  rpc CreateRole        (CreateRoleRequest)        returns (CreateRoleResponse);
+  rpc DeleteRole        (DeleteRoleRequest)        returns (DeleteRoleResponse);
+  rpc AssignRoleToUser  (AssignRoleToUserRequest)  returns (AssignRoleToUserResponse);
+  rpc RemoveRoleFromUser(RemoveRoleFromUserRequest) returns (RemoveRoleFromUserResponse);
 
-  // Permission management
-  rpc CreatePermission(CreatePermissionRequest)
-      returns (CreatePermissionResponse);
-  rpc AssignPermissionToRole(AssignPermissionToRoleRequest)
-      returns (AssignPermissionToRoleResponse);
-  rpc RemovePermissionFromRole(RemovePermissionFromRoleRequest)
-      returns (RemovePermissionFromRoleResponse);
+  // ── Permissions ───────────────────────────────────────────────────────────
+  rpc CreatePermission          (CreatePermissionRequest)          returns (CreatePermissionResponse);
+  rpc DeletePermission          (DeletePermissionRequest)          returns (DeletePermissionResponse);
+  rpc AssignPermissionToRole    (AssignPermissionToRoleRequest)    returns (AssignPermissionToRoleResponse);
+  rpc RemovePermissionFromRole  (RemovePermissionFromRoleRequest)  returns (RemovePermissionFromRoleResponse);
 }
 
+// ── Applications ─────────────────────────────────────────────────────────────
+
 message CreateApplicationRequest {
-  string code = 1;
+  string code = 1; // уникальный код: buywise-web, buywise-admin
   string name = 2;
 }
 
@@ -42,9 +43,12 @@ message CreateApplicationResponse {
   Application application = 1;
 }
 
+// ── Users ─────────────────────────────────────────────────────────────────────
+
 message CreateUserRequest {
-  string email = 1;
-  string password = 2;
+  string app_id   = 1; // в какое приложение регистрируем
+  string email    = 2;
+  string password = 3;
 }
 
 message CreateUserResponse {
@@ -75,18 +79,32 @@ message DeleteUserResponse {
   bool success = 1;
 }
 
+// ListUsers — список пользователей в приложении с пагинацией
 message ListUsersRequest {
-  Pagination pagination = 1;
+  string     app_id     = 1;
+  Pagination pagination = 2;
 }
 
 message ListUsersResponse {
-  repeated User users = 1;
-  PageInfo page_info = 2;
+  repeated User users     = 1;
+  PageInfo      page_info = 2;
 }
 
+// GetUserDetails — полный профиль пользователя с ролями и permissions
+message GetUserDetailsRequest {
+  string app_id  = 1;
+  string user_id = 2;
+}
+
+message GetUserDetailsResponse {
+  UserProfile profile = 1;
+}
+
+// ── Roles ──────────────────────────────────────────────────────────────────────
+
 message CreateRoleRequest {
-  string app_id = 1;
-  string code = 2;
+  string app_id      = 1;
+  string code        = 2; // ADMIN, MODERATOR, SELLER
   string description = 3;
 }
 
@@ -94,29 +112,42 @@ message CreateRoleResponse {
   Role role = 1;
 }
 
-message AssignRoleRequest {
-  string app_id = 1;
-  string user_id = 2;
-  string role = 3;
+message DeleteRoleRequest {
+  string app_id    = 1;
+  string role_code = 2;
 }
 
-message AssignRoleResponse {
+message DeleteRoleResponse {
   bool success = 1;
 }
 
-message RemoveRoleRequest {
-  string app_id = 1;
-  string user_id = 2;
-  string role = 3;
+// AssignRoleToUser — назначить роль пользователю в приложении
+message AssignRoleToUserRequest {
+  string app_id    = 1;
+  string user_id   = 2;
+  string role_code = 3;
 }
 
-message RemoveRoleResponse {
+message AssignRoleToUserResponse {
   bool success = 1;
 }
+
+// RemoveRoleFromUser — снять роль с пользователя
+message RemoveRoleFromUserRequest {
+  string app_id    = 1;
+  string user_id   = 2;
+  string role_code = 3;
+}
+
+message RemoveRoleFromUserResponse {
+  bool success = 1;
+}
+
+// ── Permissions ────────────────────────────────────────────────────────────────
 
 message CreatePermissionRequest {
-  string app_id = 1;
-  string code = 2;        // PRODUCT:READ
+  string app_id      = 1;
+  string code        = 2; // PRODUCT:READ, ORDER:WRITE
   string description = 3;
 }
 
@@ -124,20 +155,31 @@ message CreatePermissionResponse {
   Permission permission = 1;
 }
 
+message DeletePermissionRequest {
+  string app_id          = 1;
+  string permission_code = 2;
+}
+
+message DeletePermissionResponse {
+  bool success = 1;
+}
+
+// AssignPermissionToRole — добавить разрешение к роли
 message AssignPermissionToRoleRequest {
-  string app_id = 1;
-  string role = 2;
-  string permission = 3;
+  string app_id          = 1;
+  string role_code       = 2;
+  string permission_code = 3;
 }
 
 message AssignPermissionToRoleResponse {
   bool success = 1;
 }
 
+// RemovePermissionFromRole — убрать разрешение из роли
 message RemovePermissionFromRoleRequest {
-  string app_id = 1;
-  string role = 2;
-  string permission = 3;
+  string app_id          = 1;
+  string role_code       = 2;
+  string permission_code = 3;
 }
 
 message RemovePermissionFromRoleResponse {

@@ -7,37 +7,92 @@ option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/
 import "identity/v1/common.proto";
 
 service UserService {
-  rpc GetMe(GetMeRequest) returns (GetMeResponse);
-  rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
-  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+  // Профиль
+  rpc GetMe        (GetMeRequest)        returns (GetMeResponse);
+  rpc GetUserById  (GetUserByIdRequest)  returns (GetUserByIdResponse);
+
+  // Смена пароля
+  rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+
+  // Сессии — пользователь видит свои активные сессии
+  rpc ListSessions   (ListSessionsRequest)   returns (ListSessionsResponse);
+  rpc RevokeSession  (RevokeSessionRequest)  returns (RevokeSessionResponse);
+
+  // OAuth-провайдеры — привязка / отвязка аккаунтов
+  rpc LinkIdentity   (LinkIdentityRequest)   returns (LinkIdentityResponse);
+  rpc UnlinkIdentity (UnlinkIdentityRequest) returns (UnlinkIdentityResponse);
 }
 
+// GetMe — профиль текущего пользователя с ролями и permissions
+// user_id берётся из access_token на стороне Gateway, не из запроса
 message GetMeRequest {
-  string app_id = 1;
+  string app_id  = 1;
+  string user_id = 2; // заполняет Gateway из claims
 }
 
 message GetMeResponse {
-  User user = 1;
-  repeated string roles = 2;
-  repeated string permissions = 3;
+  UserProfile profile = 1;
 }
 
+// GetUserById — профиль другого пользователя (например для отображения продавца)
 message GetUserByIdRequest {
-  string app_id = 1;
+  string app_id  = 1;
   string user_id = 2;
 }
 
 message GetUserByIdResponse {
-  User user = 1;
-  repeated string roles = 2;
-  repeated string permissions = 3;
+  UserProfile profile = 1;
 }
 
+// ChangePassword
 message ChangePasswordRequest {
-  string old_password = 1;
-  string new_password = 2;
+  string user_id      = 1; // заполняет Gateway из claims
+  string old_password = 2;
+  string new_password = 3;
 }
 
 message ChangePasswordResponse {
+  bool success = 1;
+}
+
+// ListSessions — список активных сессий пользователя
+message ListSessionsRequest {
+  string app_id  = 1;
+  string user_id = 2; // заполняет Gateway из claims
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+// RevokeSession — пользователь завершает конкретную сессию (например "выйти на другом устройстве")
+message RevokeSessionRequest {
+  string user_id    = 1; // заполняет Gateway из claims
+  string session_id = 2;
+}
+
+message RevokeSessionResponse {
+  bool success = 1;
+}
+
+// LinkIdentity — привязать OAuth-аккаунт (google/github)
+message LinkIdentityRequest {
+  string user_id      = 1; // заполняет Gateway из claims
+  string provider     = 2; // google | github
+  string code         = 3; // authorization code от провайдера
+  string redirect_uri = 4;
+}
+
+message LinkIdentityResponse {
+  bool success = 1;
+}
+
+// UnlinkIdentity — отвязать OAuth-аккаунт
+message UnlinkIdentityRequest {
+  string user_id  = 1; // заполняет Gateway из claims
+  string provider = 2; // google | github
+}
+
+message UnlinkIdentityResponse {
   bool success = 1;
 }

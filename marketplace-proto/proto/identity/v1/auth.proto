@@ -7,59 +7,92 @@ option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/
 import "identity/v1/common.proto";
 
 service AuthService {
-  rpc Register(RegisterRequest) returns (RegisterResponse);
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc OAuthLogin(OAuthLoginRequest) returns (OAuthLoginResponse);
-  rpc Refresh(RefreshRequest) returns (RefreshResponse);
-  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  rpc Register   (RegisterRequest)   returns (RegisterResponse);
+  rpc Login      (LoginRequest)      returns (LoginResponse);
+  rpc OAuthLogin (OAuthLoginRequest) returns (OAuthLoginResponse);
+  rpc Refresh    (RefreshRequest)    returns (RefreshResponse);
+  rpc Logout     (LogoutRequest)     returns (LogoutResponse);
+  rpc LogoutAll  (LogoutAllRequest)  returns (LogoutAllResponse);
+  rpc Validate   (ValidateRequest)   returns (ValidateResponse);
 }
 
+// Register
 message RegisterRequest {
-  string app_id = 1;
-  string email = 2;
-  string password = 3;
+  string app_id    = 1;
+  string email     = 2;
+  string password  = 3;
+  string user_agent = 4;
+  string ip_address = 5;
 }
 
 message RegisterResponse {
-  User user = 1;
+  User       user   = 1;
   AuthTokens tokens = 2;
 }
 
+// Login
 message LoginRequest {
-  string app_id = 1;
-  string email = 2;
-  string password = 3;
+  string app_id     = 1;
+  string email      = 2;
+  string password   = 3;
+  string user_agent = 4;
+  string ip_address = 5;
 }
 
 message LoginResponse {
   AuthTokens tokens = 1;
 }
 
+// OAuth Login — провайдер передаёт code, сервис обменивает его на токены
 message OAuthLoginRequest {
-  string app_id = 1;
-  string provider = 2;       // GOOGLE | GITHUB
-  string code = 3;
+  string app_id       = 1;
+  string provider     = 2; // google | github
+  string code         = 3;
   string redirect_uri = 4;
+  string user_agent   = 5;
+  string ip_address   = 6;
 }
 
 message OAuthLoginResponse {
   AuthTokens tokens = 1;
 }
 
+// Refresh — обновление пары токенов по refresh_token
+// app_id не нужен — он хранится внутри refresh_token в БД
 message RefreshRequest {
-  string app_id = 1;
-  string refresh_token = 2;
+  string refresh_token = 1;
 }
 
 message RefreshResponse {
   AuthTokens tokens = 1;
 }
 
+// Logout — завершить текущую сессию по session_id из access_token
 message LogoutRequest {
-  string app_id = 1;
-  string refresh_token = 2;
+  string session_id = 1; // uuid сессии из claims access_token
 }
 
 message LogoutResponse {
   bool success = 1;
+}
+
+// LogoutAll — завершить все сессии пользователя в приложении
+message LogoutAllRequest {
+  string app_id  = 1;
+  string user_id = 2;
+}
+
+message LogoutAllResponse {
+  bool success = 1;
+}
+
+// Validate — проверить access_token (вызывается API Gateway на каждый запрос)
+message ValidateRequest {
+  string access_token = 1;
+}
+
+message ValidateResponse {
+  string   user_id = 1;
+  string   app_id  = 2;
+  repeated string roles = 3;
 }

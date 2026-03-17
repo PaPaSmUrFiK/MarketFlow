@@ -6,46 +6,75 @@ option go_package = "github.com/PaPaSmUrFiK/MarketFlow/marketplace-proto/gen/go/
 
 import "google/protobuf/timestamp.proto";
 
+// Application — приложение в рамках которого действуют роли и сессии
 message Application {
-  string id = 1;
-  string code = 2;              // buywise-web, buywise-admin
-  string name = 3;
-  bool active = 4;
+  string id         = 1;
+  string code       = 2; // buywise-web, buywise-admin
+  string name       = 3;
+  bool   active     = 4;
   google.protobuf.Timestamp created_at = 5;
 }
 
+// User — базовый профиль без email (email хранится в user_credentials)
 message User {
-  string id = 1;
-  string email = 2;
-  string status = 3;            // ACTIVE, BLOCKED, DELETED
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
+  string id     = 1;
+  string status = 2; // ACTIVE | BLOCKED | DELETED
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
 
+// UserProfile — расширенный профиль с email и ролями (для ответов GetMe / GetUserById)
+message UserProfile {
+  string id     = 1;
+  string email  = 2;
+  string status = 3;
+  repeated Role        roles       = 4;
+  repeated Permission  permissions = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// Role — роль привязана к конкретному приложению (app_id)
 message Role {
-  string code = 1;
-  string description = 2;
-  string app_id = 3;
+  string id          = 1;
+  string app_id      = 2;
+  string code        = 3; // ADMIN, MODERATOR, USER
+  string description = 4;
 }
 
+// Permission — разрешение привязано к конкретному приложению
 message Permission {
-  string code = 1;              // PRODUCT:READ
-  string description = 2;
-  string app_id = 3;
+  string id          = 1;
+  string app_id      = 2;
+  string code        = 3; // PRODUCT:READ, ORDER:WRITE
+  string description = 4;
 }
 
+// Session — активная сессия пользователя
+message Session {
+  string id         = 1;
+  string app_id     = 2;
+  string user_agent = 3;
+  string ip_address = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+// AuthTokens — пара токенов после логина / регистрации / рефреша
 message AuthTokens {
-  string access_token = 1;
+  string access_token  = 1;
   string refresh_token = 2;
-  google.protobuf.Timestamp access_expires_at = 3;
+  google.protobuf.Timestamp access_expires_at  = 3;
   google.protobuf.Timestamp refresh_expires_at = 4;
 }
 
+// Pagination — параметры постраничной выборки
 message Pagination {
   int32 page = 1;
   int32 size = 2;
 }
 
+// PageInfo — мета-информация постраничного ответа
 message PageInfo {
   int64 total = 1;
 }
