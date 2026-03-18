@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../identity-service/.idea/identity-service.iml" filepath="$PROJECT_DIR$/../identity-service/.idea/identity-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/marketplace-proto.iml" filepath="$PROJECT_DIR$/.idea/marketplace-proto.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../script/.idea/script.iml" filepath="$PROJECT_DIR$/../script/.idea/script.iml" />
     </modules>
   </component>
 </project>

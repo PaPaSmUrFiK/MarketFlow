@@ -1,0 +1,31 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+**/config/local.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test coverage
+*.out
+coverage.html
+
+# OS files
+.DS_Store
+Thumbs.db
+$null
