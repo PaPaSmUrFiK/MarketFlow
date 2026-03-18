@@ -3,14 +3,15 @@ package admin
 import (
 	"context"
 	"errors"
+	"log/slog"
+
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/domain"
 	"github.com/google/uuid"
-	"log/slog"
 )
 
 type userAdmin interface {
-	Create(ctx context.Context, user *domain.User) error
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	CreateUser(ctx context.Context, user *domain.User) error
+	GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.UserStatus) error
 	ListByApp(ctx context.Context, appID uuid.UUID) ([]domain.User, error)
 	AssignRole(ctx context.Context, userID, roleID uuid.UUID) error
@@ -32,9 +33,9 @@ type roleAdmin interface {
 }
 
 type appAdmin interface {
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.Application, error)
-	GetByCode(ctx context.Context, code string) (*domain.Application, error)
-	Create(ctx context.Context, app *domain.Application) error
+	GetAppByID(ctx context.Context, id uuid.UUID) (*domain.Application, error)
+	GetAppByCode(ctx context.Context, code string) (*domain.Application, error)
+	CreateApp(ctx context.Context, app *domain.Application) error
 }
 
 type Service struct {
@@ -54,7 +55,7 @@ func (s *Service) CreateApplication(ctx context.Context, in CreateApplicationInp
 	return nil, errors.New("not implemented")
 }
 
-//Users
+// Users
 
 func (s *Service) CreateUser(ctx context.Context, in CreateUserInput) (*domain.User, error) {
 	return nil, errors.New("not implemented")

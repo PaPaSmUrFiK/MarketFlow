@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	appgrpc "github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/app/grpc"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/config"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/jwt"
@@ -16,9 +17,10 @@ type App struct {
 }
 
 func New(log *slog.Logger, cfg *config.Config) *App {
-	const op = "app.New"
+	ctx := context.Background()
 
-	storage, err := postgres.New(
+	pool, err := postgres.New(
+		ctx,
 		cfg.GetDSN(),
 		cfg.Database.MaxOpenConn,
 		cfg.Database.MaxIdleConn,
@@ -29,11 +31,17 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 		panic(err)
 	}
 
-	userRepo := postgres.NewUserRepo(storage)
-	sessionRepo := postgres.NewSessionRepo(storage)
-	tokenRepo := postgres.NewTokenRepo(storage)
-	appRepo := postgres.NewAppRepo(storage)
-	roleRepo := postgres.NewRoleRepo(storage)
+	log.Info("connected to postgres database",
+		slog.String("host", cfg.Database.Host),
+		slog.Int("port", cfg.Database.Port),
+		slog.String("db", cfg.Database.Name),
+	)
+
+	userRepo := postgres.NewUserRepo(pool)
+	sessionRepo := postgres.NewSessionRepo(pool)
+	tokenRepo := postgres.NewTokenRepo(pool)
+	appRepo := postgres.NewAppRepo(pool)
+	roleRepo := postgres.NewRoleRepo(pool)
 
 	jwtManager, err := jwt.NewManager(
 		string(cfg.GetJWTSecret()),

@@ -6,9 +6,9 @@ import (
 )
 
 type Application struct {
-	ID        uuid.UUID
-	Code      string
-	Name      string
-	Active    bool
-	CreatedAt time.Time
+	ID        uuid.UUID `db:"id"`
+	Code      string    `db:"code"`
+	Name      string    `db:"name"`
+	Active    bool      `db:"active"`
+	CreatedAt time.Time `db:"created_at"`
 }

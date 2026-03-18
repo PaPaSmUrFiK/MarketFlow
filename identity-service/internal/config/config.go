@@ -71,7 +71,11 @@ type JWTSecrets struct {
 	Secret []byte
 }
 
-// GetDSN returns database connection string
+// GetDSN строит URL-формат который понимает pgx/pgxpool:
+// postgres://user:password@host:port/dbname?sslmode=disable
+//
+// pgxpool.ParseConfig принимает именно URL, а не key=value строку.
+// key=value формат (старый GetDSN) работал только с database/sql + std
 func (c *Config) GetDSN() string {
 	sslMode := "disable"
 	if c.Env == EnvProd {
@@ -79,11 +83,11 @@ func (c *Config) GetDSN() string {
 	}
 
 	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		c.Database.Host,
-		c.Database.Port,
+		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
 		c.Secrets.Database.User,
 		c.Secrets.Database.Password,
+		c.Database.Host,
+		c.Database.Port,
 		c.Database.Name,
 		sslMode,
 	)

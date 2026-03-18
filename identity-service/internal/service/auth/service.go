@@ -17,41 +17,41 @@ const (
 	LockDuration           = 15 * time.Minute
 )
 
-type userReader interface {
-	Create(ctx context.Context, user *domain.User) error
-	GetByEmail(ctx context.Context, email string) (*domain.User, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+// Интерфейсы обновлены под имена методов репозиториев (с суффиксами)
 
+type userReader interface {
+	CreateUser(ctx context.Context, user *domain.User) error
+	CreateCredentials(ctx context.Context, cred *domain.Credential) error
+	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	GetCredentials(ctx context.Context, userID uuid.UUID) (*domain.Credential, error)
 	UpdateCredentials(ctx context.Context, cred *domain.Credential) error
 	GetUserWithRoles(ctx context.Context, userID uuid.UUID, appID uuid.UUID) (*domain.User, error)
-
 	CreateIdentity(ctx context.Context, identity *domain.UserIdentity) error
 	GetIdentity(ctx context.Context, provider domain.OAuthProvider, providerUserID string) (*domain.UserIdentity, error)
 }
 
 type appReader interface {
-	GetByCode(ctx context.Context, code string) (*domain.Application, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.Application, error)
+	GetAppByCode(ctx context.Context, code string) (*domain.Application, error)
+	GetAppByID(ctx context.Context, id uuid.UUID) (*domain.Application, error)
 }
 
 type sessionStore interface {
-	Create(ctx context.Context, session *domain.Session) error
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.Session, error)
-	Revoke(ctx context.Context, sessionID uuid.UUID) error
+	CreateSession(ctx context.Context, session *domain.Session) error
+	GetSessionByID(ctx context.Context, id uuid.UUID) (*domain.Session, error)
+	RevokeSession(ctx context.Context, sessionID uuid.UUID) error
 	RevokeAllByUser(ctx context.Context, userID uuid.UUID, appID uuid.UUID) error
 }
 
 type tokenStore interface {
-	Create(ctx context.Context, token *domain.RefreshToken) error
-	GetByHash(ctx context.Context, hash string) (*domain.RefreshToken, error)
-	Revoke(ctx context.Context, tokenID uuid.UUID) error
+	CreateToken(ctx context.Context, token *domain.RefreshToken) error
+	GetTokenByHash(ctx context.Context, hash string) (*domain.RefreshToken, error)
+	RevokeToken(ctx context.Context, tokenID uuid.UUID) error
 	RevokeAllBySession(ctx context.Context, sessionID uuid.UUID) error
 	RevokeAllByUser(ctx context.Context, userID uuid.UUID, appID uuid.UUID) error
-	DeleteExpired(ctx context.Context) error
+	DeleteExpired(ctx context.Context) (int64, error) // возвращает кол-во удалённых
 }
 
-// Service реализует AuthService.
 type Service struct {
 	users    userReader
 	apps     appReader
@@ -79,21 +79,18 @@ func New(
 	}
 }
 
-// RegisterNewUser регистрирует нового пользователя.
 func (s *Service) RegisterNewUser(ctx context.Context, in RegisterInput) (*TokenPair, error) {
 	const op = "auth.Service.Register"
-
 	// TODO: реализовать
 	return nil, sl.Err(op, domain.ErrNotImplemented)
 }
 
-// Login выполняет аутентификацию пользователя по email и паролю.
 func (s *Service) Login(ctx context.Context, in LoginInput) (*TokenPair, error) {
 	const op = "auth.Service.Login"
 
 	now := time.Now()
 
-	user, err := s.users.GetByEmail(ctx, in.Email)
+	user, err := s.users.GetUserByEmail(ctx, in.Email)
 	if err != nil {
 		return nil, domain.ErrInvalidCredentials
 	}
@@ -129,7 +126,7 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*TokenPair, error) 
 		return nil, sl.Err(op, err)
 	}
 
-	app, err := s.apps.GetByCode(ctx, in.AppCode)
+	app, err := s.apps.GetAppByCode(ctx, in.AppCode)
 	if err != nil {
 		return nil, sl.Err(op, err)
 	}
@@ -144,15 +141,12 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*TokenPair, error) 
 	return s.createSessionAndTokens(ctx, user.ID, app.ID, roleCodes, in, now)
 }
 
-// LoginWithOAuth выполняет аутентификацию через OAuth-провайдера.
 func (s *Service) LoginWithOAuth(ctx context.Context, in OAuthLoginInput) (*TokenPair, error) {
 	const op = "auth.Service.LoginWithOAuth"
-
 	// TODO: реализовать
 	return nil, sl.Err(op, domain.ErrNotImplemented)
 }
 
-// Refresh обновляет пару токенов по refresh-токену.
 func (s *Service) Refresh(ctx context.Context, rawToken string) (*TokenPair, error) {
 	const op = "auth.Service.Refresh"
 
@@ -163,7 +157,7 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (*TokenPair, err
 		return nil, sl.Err(op, err)
 	}
 
-	oldToken, err := s.tokens.GetByHash(ctx, hash)
+	oldToken, err := s.tokens.GetTokenByHash(ctx, hash)
 	if err != nil {
 		return nil, domain.ErrInvalidCredentials
 	}
@@ -190,21 +184,19 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (*TokenPair, err
 	}
 
 	newToken := domain.RefreshToken{
-		ID:        uuid.New(),
 		UserID:    oldToken.UserID,
 		AppID:     oldToken.AppID,
 		SessionID: oldToken.SessionID,
 		TokenHash: newHash,
 		ExpiresAt: now.Add(s.jwt.RefreshTTL()),
-		CreatedAt: now,
 	}
 
-	// TODO: Должно быть в транзакции
-	if err := s.tokens.Revoke(ctx, oldToken.ID); err != nil {
+	// TODO: обернуть в транзакцию через TokenRepo.RotateToken
+	if err := s.tokens.RevokeToken(ctx, oldToken.ID); err != nil {
 		return nil, sl.Err(op, err)
 	}
 
-	if err := s.tokens.Create(ctx, &newToken); err != nil {
+	if err := s.tokens.CreateToken(ctx, &newToken); err != nil {
 		return nil, sl.Err(op, err)
 	}
 
@@ -214,16 +206,13 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (*TokenPair, err
 	}, nil
 }
 
-// Logout завершает сессию и отзывает все refresh-токены.
 func (s *Service) Logout(ctx context.Context, sessionID uuid.UUID) error {
 	const op = "auth.Service.Logout"
 
-	// 1️⃣ Отзываем сессию
-	if err := s.sessions.Revoke(ctx, sessionID); err != nil {
+	if err := s.sessions.RevokeSession(ctx, sessionID); err != nil {
 		return sl.Err(op, err)
 	}
 
-	// 2️⃣ Отзываем все refresh токены этой сессии
 	if err := s.tokens.RevokeAllBySession(ctx, sessionID); err != nil {
 		return sl.Err(op, err)
 	}
@@ -231,16 +220,13 @@ func (s *Service) Logout(ctx context.Context, sessionID uuid.UUID) error {
 	return nil
 }
 
-// LogoutAll завершает все сессии пользователя для приложения.
 func (s *Service) LogoutAll(ctx context.Context, userID, appID uuid.UUID) error {
 	const op = "auth.Service.LogoutAll"
 
-	// 1️⃣ Отзываем все сессии пользователя для конкретного приложения
 	if err := s.sessions.RevokeAllByUser(ctx, userID, appID); err != nil {
 		return sl.Err(op, err)
 	}
 
-	// 2️⃣ Отзываем все refresh токены пользователя для этого приложения
 	if err := s.tokens.RevokeAllByUser(ctx, userID, appID); err != nil {
 		return sl.Err(op, err)
 	}
@@ -248,10 +234,8 @@ func (s *Service) LogoutAll(ctx context.Context, userID, appID uuid.UUID) error 
 	return nil
 }
 
-// ValidateAccessToken проверяет валидность access-токена.
 func (s *Service) ValidateAccessToken(ctx context.Context, token string) (*jwt.AccessClaims, error) {
 	const op = "auth.Service.ValidateAccessToken"
-
 	// TODO: реализовать
 	return nil, sl.Err(op, domain.ErrNotImplemented)
 }
@@ -267,14 +251,14 @@ func (s *Service) createSessionAndTokens(
 	const op = "auth.Service.createSessionAndTokens"
 
 	session := domain.Session{
-		ID:        uuid.New(),
 		UserID:    userID,
 		AppID:     appID,
 		UserAgent: in.UserAgent,
 		IPAddress: in.IPAddress,
+		ExpiresAt: now.Add(s.jwt.RefreshTTL()), // сессия живёт столько же сколько refresh токен
 	}
 
-	if err := s.sessions.Create(ctx, &session); err != nil {
+	if err := s.sessions.CreateSession(ctx, &session); err != nil {
 		return nil, sl.Err(op, err)
 	}
 
@@ -289,16 +273,14 @@ func (s *Service) createSessionAndTokens(
 	}
 
 	refresh := domain.RefreshToken{
-		ID:        uuid.New(),
 		UserID:    userID,
 		AppID:     appID,
 		SessionID: session.ID,
 		TokenHash: hashRefresh,
 		ExpiresAt: now.Add(s.jwt.RefreshTTL()),
-		CreatedAt: now,
 	}
 
-	if err := s.tokens.Create(ctx, &refresh); err != nil {
+	if err := s.tokens.CreateToken(ctx, &refresh); err != nil {
 		return nil, sl.Err(op, err)
 	}
 

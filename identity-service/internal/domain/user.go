@@ -14,9 +14,9 @@ const (
 )
 
 type User struct {
-	ID        uuid.UUID
-	Status    UserStatus
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Roles     []Role
+	ID        uuid.UUID  `db:"id"`
+	Status    UserStatus `db:"status"`
+	CreatedAt time.Time  `db:"created_at"`
+	UpdatedAt time.Time  `db:"updated_at"`
+	Roles     []Role     `db:"-"`
 }

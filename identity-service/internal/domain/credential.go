@@ -6,14 +6,14 @@ import (
 )
 
 type Credential struct {
-	UserID              uuid.UUID
-	Email               string
-	PasswordHash        string
-	EmailVerified       bool
-	CreatedAt           time.Time
-	LastPasswordChange  *time.Time
-	FailedLoginAttempts int
-	LockedUntil         *time.Time
+	UserID              uuid.UUID  `db:"user_id"`
+	Email               string     `db:"email"`
+	PasswordHash        string     `db:"password_hash"`
+	EmailVerified       bool       `db:"email_verified"`
+	CreatedAt           time.Time  `db:"created_at"`
+	LastPasswordChange  *time.Time `db:"last_password_change"`
+	FailedLoginAttempts int        `db:"failed_login_attempts"`
+	LockedUntil         *time.Time `db:"locked_until"`
 }
 
 func (c *Credential) IsLocked(now time.Time) bool {

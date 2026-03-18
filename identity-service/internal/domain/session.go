@@ -6,14 +6,14 @@ import (
 )
 
 type Session struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	AppID     uuid.UUID
-	UserAgent string
-	IPAddress string
-	CreatedAt time.Time
-	RevokedAt *time.Time
-	ExpiresAt time.Time
+	ID        uuid.UUID  `db:"id"`
+	UserID    uuid.UUID  `db:"user_id"`
+	AppID     uuid.UUID  `db:"app_id"`
+	UserAgent string     `db:"user_agent"`
+	IPAddress string     `db:"ip_address"`
+	CreatedAt time.Time  `db:"created_at"`
+	ExpiresAt time.Time  `db:"expires_at"`
+	RevokedAt *time.Time `db:"revoked_at"`
 }
 
 func (s *Session) IsRevoked() bool {

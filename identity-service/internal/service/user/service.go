@@ -3,27 +3,26 @@ package user
 import (
 	"context"
 	"errors"
+	"log/slog"
+
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/domain"
 	"github.com/google/uuid"
-	"log/slog"
 )
 
 type userStore interface {
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.UserStatus) error
-	// смена пароля
 	GetCredentials(ctx context.Context, userID uuid.UUID) (*domain.Credential, error)
 	UpdateCredentials(ctx context.Context, cred *domain.Credential) error
 	GetUserWithRoles(ctx context.Context, userID uuid.UUID, appID uuid.UUID) (*domain.User, error)
-	// управление OAuth-провайдерами
 	CreateIdentity(ctx context.Context, identity *domain.UserIdentity) error
 	GetIdentity(ctx context.Context, provider domain.OAuthProvider, providerUserID string) (*domain.UserIdentity, error)
 }
 
 type sessionStore interface {
-	GetByID(ctx context.Context, id uuid.UUID) (*domain.Session, error)
+	GetSessionByID(ctx context.Context, id uuid.UUID) (*domain.Session, error)
 	ListByUser(ctx context.Context, userID uuid.UUID, appID uuid.UUID) ([]domain.Session, error)
-	Revoke(ctx context.Context, sessionID uuid.UUID) error
+	RevokeSession(ctx context.Context, sessionID uuid.UUID) error
 }
 
 type Service struct {
@@ -62,7 +61,7 @@ func (s *Service) RevokeSession(ctx context.Context, userID uuid.UUID, sessionID
 }
 
 func (s *Service) LinkIdentity(ctx context.Context, userID uuid.UUID, in LinkIdentityInput) error {
-	// TODO: реализовать — обмен OAuth code на провайдерский user_id
+	// TODO: реализовать
 	return errors.New("not implemented")
 }
 
