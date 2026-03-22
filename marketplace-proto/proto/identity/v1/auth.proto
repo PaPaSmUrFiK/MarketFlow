@@ -26,7 +26,6 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-  User       user   = 1;
   AuthTokens tokens = 2;
 }
 

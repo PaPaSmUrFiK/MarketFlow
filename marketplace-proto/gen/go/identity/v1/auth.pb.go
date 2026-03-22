@@ -100,7 +100,6 @@ func (x *RegisterRequest) GetIpAddress() string {
 
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	Tokens        *AuthTokens            `protobuf:"bytes,2,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -134,13 +133,6 @@ func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
 func (*RegisterResponse) Descriptor() ([]byte, []int) {
 	return file_identity_v1_auth_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *RegisterResponse) GetUser() *User {
-	if x != nil {
-		return x.User
-	}
-	return nil
 }
 
 func (x *RegisterResponse) GetTokens() *AuthTokens {
@@ -793,9 +785,8 @@ const file_identity_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"user_agent\x18\x04 \x01(\tR\tuserAgent\x12\x1d\n" +
 	"\n" +
-	"ip_address\x18\x05 \x01(\tR\tipAddress\"j\n" +
-	"\x10RegisterResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.identity.v1.UserR\x04user\x12/\n" +
+	"ip_address\x18\x05 \x01(\tR\tipAddress\"C\n" +
+	"\x10RegisterResponse\x12/\n" +
 	"\x06tokens\x18\x02 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"\x95\x01\n" +
 	"\fLoginRequest\x12\x15\n" +
 	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x14\n" +
@@ -876,34 +867,32 @@ var file_identity_v1_auth_proto_goTypes = []any{
 	(*LogoutAllResponse)(nil),  // 11: identity.v1.LogoutAllResponse
 	(*ValidateRequest)(nil),    // 12: identity.v1.ValidateRequest
 	(*ValidateResponse)(nil),   // 13: identity.v1.ValidateResponse
-	(*User)(nil),               // 14: identity.v1.User
-	(*AuthTokens)(nil),         // 15: identity.v1.AuthTokens
+	(*AuthTokens)(nil),         // 14: identity.v1.AuthTokens
 }
 var file_identity_v1_auth_proto_depIdxs = []int32{
-	14, // 0: identity.v1.RegisterResponse.user:type_name -> identity.v1.User
-	15, // 1: identity.v1.RegisterResponse.tokens:type_name -> identity.v1.AuthTokens
-	15, // 2: identity.v1.LoginResponse.tokens:type_name -> identity.v1.AuthTokens
-	15, // 3: identity.v1.OAuthLoginResponse.tokens:type_name -> identity.v1.AuthTokens
-	15, // 4: identity.v1.RefreshResponse.tokens:type_name -> identity.v1.AuthTokens
-	0,  // 5: identity.v1.AuthService.Register:input_type -> identity.v1.RegisterRequest
-	2,  // 6: identity.v1.AuthService.Login:input_type -> identity.v1.LoginRequest
-	4,  // 7: identity.v1.AuthService.OAuthLogin:input_type -> identity.v1.OAuthLoginRequest
-	6,  // 8: identity.v1.AuthService.Refresh:input_type -> identity.v1.RefreshRequest
-	8,  // 9: identity.v1.AuthService.Logout:input_type -> identity.v1.LogoutRequest
-	10, // 10: identity.v1.AuthService.LogoutAll:input_type -> identity.v1.LogoutAllRequest
-	12, // 11: identity.v1.AuthService.Validate:input_type -> identity.v1.ValidateRequest
-	1,  // 12: identity.v1.AuthService.Register:output_type -> identity.v1.RegisterResponse
-	3,  // 13: identity.v1.AuthService.Login:output_type -> identity.v1.LoginResponse
-	5,  // 14: identity.v1.AuthService.OAuthLogin:output_type -> identity.v1.OAuthLoginResponse
-	7,  // 15: identity.v1.AuthService.Refresh:output_type -> identity.v1.RefreshResponse
-	9,  // 16: identity.v1.AuthService.Logout:output_type -> identity.v1.LogoutResponse
-	11, // 17: identity.v1.AuthService.LogoutAll:output_type -> identity.v1.LogoutAllResponse
-	13, // 18: identity.v1.AuthService.Validate:output_type -> identity.v1.ValidateResponse
-	12, // [12:19] is the sub-list for method output_type
-	5,  // [5:12] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	14, // 0: identity.v1.RegisterResponse.tokens:type_name -> identity.v1.AuthTokens
+	14, // 1: identity.v1.LoginResponse.tokens:type_name -> identity.v1.AuthTokens
+	14, // 2: identity.v1.OAuthLoginResponse.tokens:type_name -> identity.v1.AuthTokens
+	14, // 3: identity.v1.RefreshResponse.tokens:type_name -> identity.v1.AuthTokens
+	0,  // 4: identity.v1.AuthService.Register:input_type -> identity.v1.RegisterRequest
+	2,  // 5: identity.v1.AuthService.Login:input_type -> identity.v1.LoginRequest
+	4,  // 6: identity.v1.AuthService.OAuthLogin:input_type -> identity.v1.OAuthLoginRequest
+	6,  // 7: identity.v1.AuthService.Refresh:input_type -> identity.v1.RefreshRequest
+	8,  // 8: identity.v1.AuthService.Logout:input_type -> identity.v1.LogoutRequest
+	10, // 9: identity.v1.AuthService.LogoutAll:input_type -> identity.v1.LogoutAllRequest
+	12, // 10: identity.v1.AuthService.Validate:input_type -> identity.v1.ValidateRequest
+	1,  // 11: identity.v1.AuthService.Register:output_type -> identity.v1.RegisterResponse
+	3,  // 12: identity.v1.AuthService.Login:output_type -> identity.v1.LoginResponse
+	5,  // 13: identity.v1.AuthService.OAuthLogin:output_type -> identity.v1.OAuthLoginResponse
+	7,  // 14: identity.v1.AuthService.Refresh:output_type -> identity.v1.RefreshResponse
+	9,  // 15: identity.v1.AuthService.Logout:output_type -> identity.v1.LogoutResponse
+	11, // 16: identity.v1.AuthService.LogoutAll:output_type -> identity.v1.LogoutAllResponse
+	13, // 17: identity.v1.AuthService.Validate:output_type -> identity.v1.ValidateResponse
+	11, // [11:18] is the sub-list for method output_type
+	4,  // [4:11] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_identity_v1_auth_proto_init() }
