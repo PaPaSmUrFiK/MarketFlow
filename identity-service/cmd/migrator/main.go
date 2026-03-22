@@ -4,10 +4,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/config"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/joho/godotenv"
-	"os"
 
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -15,8 +16,10 @@ import (
 
 func main() {
 	var migrationsPath string
+	var command string
 
 	flag.StringVar(&migrationsPath, "migrations-path", "./migrations", "path to migrations directory")
+	flag.StringVar(&command, "command", "up", "command: up, down, force, version")
 	flag.Parse()
 
 	if migrationsPath == "" {
@@ -53,6 +56,38 @@ func main() {
 			fmt.Printf("db close error: %v\n", dbErr)
 		}
 	}()
+
+	switch command {
+	case "force":
+		if len(flag.Args()) == 0 {
+			panic("force command requires version argument")
+		}
+		version := flag.Arg(0)
+		var v int
+		fmt.Sscanf(version, "%d", &v)
+		if err := m.Force(v); err != nil {
+			panic(fmt.Sprintf("migrate force: %v", err))
+		}
+		fmt.Printf("forced version to %d\n", v)
+		return
+	case "version":
+		v, dirty, err := m.Version()
+		if err != nil {
+			panic(fmt.Sprintf("migrate version: %v", err))
+		}
+		fmt.Printf("version: %d, dirty: %v\n", v, dirty)
+		return
+	case "down":
+		if err := m.Down(); err != nil {
+			if !errors.Is(err, migrate.ErrNoChange) {
+				panic(fmt.Sprintf("migrate down: %v", err))
+			}
+			fmt.Println("no migrations to apply")
+			return
+		}
+		fmt.Println("migrations down applied successfully")
+		return
+	}
 
 	if err := m.Up(); err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {

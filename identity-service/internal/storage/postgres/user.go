@@ -380,3 +380,22 @@ func (r *UserRepo) RemoveRole(ctx context.Context, userID, roleID uuid.UUID) err
 
 	return nil
 }
+
+func (r *UserRepo) DeleteIdentity(ctx context.Context, userID uuid.UUID, provider domain.OAuthProvider) error {
+	const op = "storage.postgres.DeleteIdentity"
+
+	query := `
+		DELETE FROM user_identities
+		WHERE user_id = $1 AND provider = $2`
+
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, userID, provider)
+	if err != nil {
+		return sl.Err(op, fmt.Errorf("delete: %w", err))
+	}
+
+	if result.RowsAffected() == 0 {
+		return sl.Err(op, domain.ErrIdentityNotFound)
+	}
+
+	return nil
+}
