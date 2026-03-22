@@ -4,7 +4,9 @@ import (
 	"context"
 	appgrpc "github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/app/grpc"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/config"
+	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/domain"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/jwt"
+	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/oauth"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/service/admin"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/service/auth"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/service/user"
@@ -42,6 +44,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	tokenRepo := postgres.NewTokenRepo(pool)
 	appRepo := postgres.NewAppRepo(pool)
 	roleRepo := postgres.NewRoleRepo(pool)
+	txManager := postgres.NewTx(pool)
 
 	jwtManager, err := jwt.NewManager(
 		string(cfg.GetJWTSecret()),
@@ -54,11 +57,37 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 		panic(err)
 	}
 
-	authSvc := auth.New(userRepo, appRepo, sessionRepo, tokenRepo, log, jwtManager)
+	oauthProviders := buildOAuthProviders(cfg, log)
+
+	authSvc := auth.New(userRepo, roleRepo, appRepo, sessionRepo, tokenRepo, txManager, oauthProviders, log, jwtManager)
 	userSvc := user.New(userRepo, sessionRepo, log)
 	adminSvc := admin.New(userRepo, roleRepo, appRepo, log)
 
 	grpcApp := appgrpc.New(log, authSvc, userSvc, adminSvc, cfg.GRPC.Port)
 
 	return &App{GRPCSrv: grpcApp}
+}
+
+func buildOAuthProviders(cfg *config.Config, log *slog.Logger) map[domain.OAuthProvider]oauth.Provider {
+	providers := make(map[domain.OAuthProvider]oauth.Provider)
+
+	if cfg.OAuth.Google.Enabled {
+		providers[domain.ProviderGoogle] = oauth.NewGoogleProvider(
+			cfg.Secrets.OAuth.GoogleClientID,
+			cfg.Secrets.OAuth.GoogleClientSecret,
+			cfg.OAuth.Google.RedirectURI,
+		)
+		log.Info("oauth provider enabled", slog.String("provider", "google"))
+	}
+
+	if cfg.OAuth.GitHub.Enabled {
+		providers[domain.ProviderGitHub] = oauth.NewGitHubProvider(
+			cfg.Secrets.OAuth.GitHubClientID,
+			cfg.Secrets.OAuth.GitHubClientSecret,
+			cfg.OAuth.GitHub.RedirectURI,
+		)
+		log.Info("oauth provider enabled", slog.String("provider", "github"))
+	}
+
+	return providers
 }

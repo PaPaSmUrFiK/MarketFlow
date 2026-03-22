@@ -27,15 +27,15 @@ func validate(cfg *Config) error {
 	}
 
 	if cfg.Database.MaxOpenConn <= 0 {
-		return fmt.Errorf("database.max_open_conns must be > 0")
+		return fmt.Errorf("database.max_open_conn must be > 0")
 	}
 
 	if cfg.Database.MaxIdleConn <= 0 {
-		return fmt.Errorf("database.max_idle_conns must be > 0")
+		return fmt.Errorf("database.max_idle_conn must be > 0")
 	}
 
 	if cfg.Database.MaxIdleConn > cfg.Database.MaxOpenConn {
-		return fmt.Errorf("database.max_idle_conns cannot exceed max_open_conns")
+		return fmt.Errorf("database.max_idle_conn cannot exceed max_open_conn")
 	}
 
 	if cfg.Database.ConnMaxLifetime <= 0 {

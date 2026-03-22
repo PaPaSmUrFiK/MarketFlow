@@ -28,7 +28,7 @@ func (r *AppRepo) GetAppByCode(ctx context.Context, code string) (*domain.Applic
        FROM applications 
        WHERE code = $1 AND active = TRUE`
 
-	rows, err := r.pool.Query(ctx, query, code)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, code)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query execution: %w", err))
 	}
@@ -54,7 +54,7 @@ func (r *AppRepo) GetAppByID(ctx context.Context, id uuid.UUID) (*domain.Applica
        FROM applications 
        WHERE id = $1 AND active = TRUE`
 
-	rows, err := r.pool.Query(ctx, query, id)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, id)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query execution: %w", err))
 	}
@@ -80,7 +80,7 @@ func (r *AppRepo) CreateApp(ctx context.Context, app *domain.Application) error 
         VALUES ($1, $2)
         RETURNING id, active, created_at`
 
-	err := r.pool.QueryRow(ctx, query, app.Code, app.Name).Scan(
+	err := getDB(ctx, r.pool).QueryRow(ctx, query, app.Code, app.Name).Scan(
 		&app.ID,
 		&app.Active,
 		&app.CreatedAt,

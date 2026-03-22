@@ -28,7 +28,7 @@ func (r *SessionRepo) CreateSession(ctx context.Context, session *domain.Session
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at`
 
-	err := r.pool.QueryRow(ctx, query, session.UserID, session.AppID, session.UserAgent,
+	err := getDB(ctx, r.pool).QueryRow(ctx, query, session.UserID, session.AppID, session.UserAgent,
 		session.IPAddress, session.ExpiresAt).
 		Scan(&session.ID, &session.CreatedAt)
 
@@ -56,7 +56,7 @@ func (r *SessionRepo) GetSessionByID(ctx context.Context, id uuid.UUID) (*domain
        FROM sessions 
        WHERE id = $1`
 
-	rows, err := r.pool.Query(ctx, query, id)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, id)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query execution: %w", err))
 	}
@@ -82,7 +82,7 @@ func (r *SessionRepo) RevokeSession(ctx context.Context, sessionID uuid.UUID) er
        SET revoked_at = NOW()
        WHERE id = $1 AND revoked_at IS NULL`
 
-	result, err := r.pool.Exec(ctx, query, sessionID)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, sessionID)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("update failed: %w", err))
 	}
@@ -105,7 +105,7 @@ func (r *SessionRepo) RevokeAllByUser(ctx context.Context, userID uuid.UUID, app
          AND revoked_at IS NULL
          AND expires_at > NOW()`
 
-	result, err := r.pool.Exec(ctx, query, userID, appID)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, userID, appID)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("update failed: %w", err))
 	}
@@ -127,7 +127,7 @@ func (r *SessionRepo) ListByUser(ctx context.Context, userID uuid.UUID, appID uu
        WHERE user_id = $1 AND app_id = $2
        ORDER BY created_at DESC`
 
-	rows, err := r.pool.Query(ctx, query, userID, appID)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, userID, appID)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query execution: %w", err))
 	}

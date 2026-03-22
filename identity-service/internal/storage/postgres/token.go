@@ -28,7 +28,7 @@ func (r *TokenRepo) CreateToken(ctx context.Context, token *domain.RefreshToken)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at`
 
-	err := r.pool.QueryRow(ctx, query, token.UserID, token.AppID, token.SessionID, token.TokenHash, token.ExpiresAt).Scan(&token.ID, &token.CreatedAt)
+	err := getDB(ctx, r.pool).QueryRow(ctx, query, token.UserID, token.AppID, token.SessionID, token.TokenHash, token.ExpiresAt).Scan(&token.ID, &token.CreatedAt)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -55,7 +55,7 @@ func (r *TokenRepo) GetTokenByHash(ctx context.Context, hash string) (*domain.Re
 		FROM refresh_tokens
 		WHERE token_hash = $1`
 
-	rows, err := r.pool.Query(ctx, query, hash)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, hash)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -80,7 +80,7 @@ func (r *TokenRepo) RevokeToken(ctx context.Context, tokenID uuid.UUID) error {
 		SET revoked_at = NOW()
 		WHERE id = $1 AND revoked_at IS NULL`
 
-	result, err := r.pool.Exec(ctx, query, tokenID)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, tokenID)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("update: %w", err))
 	}
@@ -100,7 +100,7 @@ func (r *TokenRepo) RevokeAllBySession(ctx context.Context, sessionID uuid.UUID)
 		SET revoked_at = NOW()
 		WHERE session_id = $1 AND revoked_at IS NULL`
 
-	_, err := r.pool.Exec(ctx, query, sessionID)
+	_, err := getDB(ctx, r.pool).Exec(ctx, query, sessionID)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("update: %w", err))
 	}
@@ -118,7 +118,7 @@ func (r *TokenRepo) RevokeAllByUser(ctx context.Context, userID uuid.UUID, appID
 		  AND app_id = $2
 		  AND revoked_at IS NULL`
 
-	_, err := r.pool.Exec(ctx, query, userID, appID)
+	_, err := getDB(ctx, r.pool).Exec(ctx, query, userID, appID)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("update: %w", err))
 	}
@@ -137,7 +137,7 @@ func (r *TokenRepo) DeleteExpired(ctx context.Context) (int64, error) {
 		WHERE expires_at < NOW()
 		   OR revoked_at IS NOT NULL`
 
-	result, err := r.pool.Exec(ctx, query)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query)
 	if err != nil {
 		return 0, sl.Err(op, fmt.Errorf("delete: %w", err))
 	}

@@ -30,7 +30,7 @@ func MustLoad() *Config {
 
 	applyDefaults(&cfg)
 
-	cfg.Secrets = loadSecrets()
+	cfg.Secrets = loadSecrets(&cfg)
 
 	if err := validate(&cfg); err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func MustLoad() *Config {
 	return &cfg
 }
 
-func loadSecrets() Secrets {
-	return Secrets{
+func loadSecrets(cfg *Config) Secrets {
+	s := Secrets{
 		Database: DatabaseSecrets{
 			User:     mustGetEnv("DB_USER"),
 			Password: mustGetEnv("DB_PASSWORD"),
@@ -49,6 +49,18 @@ func loadSecrets() Secrets {
 			Secret: []byte(mustGetEnv("JWT_SECRET")),
 		},
 	}
+
+	// OAuth секреты — опциональны, загружаем только если провайдер включён
+	if cfg.OAuth.Google.Enabled {
+		s.OAuth.GoogleClientID = mustGetEnv("GOOGLE_CLIENT_ID")
+		s.OAuth.GoogleClientSecret = mustGetEnv("GOOGLE_CLIENT_SECRET")
+	}
+	if cfg.OAuth.GitHub.Enabled {
+		s.OAuth.GitHubClientID = mustGetEnv("GITHUB_CLIENT_ID")
+		s.OAuth.GitHubClientSecret = mustGetEnv("GITHUB_CLIENT_SECRET")
+	}
+
+	return s
 }
 
 func mustGetEnv(key string) string {

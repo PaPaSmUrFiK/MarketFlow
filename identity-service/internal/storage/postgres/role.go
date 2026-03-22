@@ -28,7 +28,7 @@ func (r *RoleRepo) CreateRole(ctx context.Context, role *domain.Role) error {
 		VALUES ($1, $2, $3)
 		RETURNING id`
 
-	err := r.pool.QueryRow(ctx, query, role.AppID, role.Code, role.Description).
+	err := getDB(ctx, r.pool).QueryRow(ctx, query, role.AppID, role.Code, role.Description).
 		Scan(&role.ID)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (r *RoleRepo) GetRoleByCode(ctx context.Context, appID uuid.UUID, code stri
 		FROM roles
 		WHERE app_id = $1 AND code = $2`
 
-	rows, err := r.pool.Query(ctx, query, appID, code)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, appID, code)
 
 	if err != nil {
 		return nil, sl.Err(op, err)
@@ -73,7 +73,7 @@ func (r *RoleRepo) GetRoleByID(ctx context.Context, id uuid.UUID) (*domain.Role,
 		FROM roles
 		WHERE id = $1`
 
-	rows, err := r.pool.Query(ctx, query, id)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, id)
 	if err != nil {
 		return nil, sl.Err(op, err)
 	}
@@ -98,7 +98,7 @@ func (r *RoleRepo) DeleteRole(ctx context.Context, roleID uuid.UUID) error {
 		DELETE FROM roles
 		WHERE id = $1`
 
-	tag, err := r.pool.Exec(ctx, query, roleID)
+	tag, err := getDB(ctx, r.pool).Exec(ctx, query, roleID)
 	if err != nil {
 		return sl.Err(op, err)
 	}
@@ -118,7 +118,7 @@ func (r *RoleRepo) AssignPermission(ctx context.Context, roleID, permissionID uu
 		values ($1, $2)
 		ON CONFLICT (role_id, permission_id) DO NOTHING`
 
-	_, err := r.pool.Exec(ctx, query, roleID, permissionID)
+	_, err := getDB(ctx, r.pool).Exec(ctx, query, roleID, permissionID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -142,7 +142,7 @@ func (r *RoleRepo) RemovePermission(ctx context.Context, roleID, permissionID uu
 		DELETE FROM role_permissions
 		WHERE role_id = $1 AND permission_id = $2`
 
-	_, err := r.pool.Exec(ctx, query, roleID, permissionID)
+	_, err := getDB(ctx, r.pool).Exec(ctx, query, roleID, permissionID)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -163,7 +163,7 @@ func (r *RoleRepo) GetPermissionsByRole(ctx context.Context, roleID uuid.UUID) (
        JOIN role_permissions rp ON p.id = rp.permission_id
        WHERE rp.role_id = $1`
 
-	rows, err := r.pool.Query(ctx, query, roleID)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, roleID)
 	if err != nil {
 		return nil, sl.Err(op, err)
 	}
@@ -194,7 +194,7 @@ func (r *RoleRepo) CreatePermission(ctx context.Context, permission *domain.Perm
 		VALUES ($1, $2, $3)
 		RETURNING id`
 
-	err := r.pool.QueryRow(ctx, query, permission.AppID, permission.Code, permission.Description).
+	err := getDB(ctx, r.pool).QueryRow(ctx, query, permission.AppID, permission.Code, permission.Description).
 		Scan(&permission.ID)
 
 	if err != nil {
@@ -216,7 +216,7 @@ func (r *RoleRepo) GetPermissionByID(ctx context.Context, id uuid.UUID) (*domain
 		FROM permissions
 		WHERE id = $1`
 
-	rows, err := r.pool.Query(ctx, query, id)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, id)
 	if err != nil {
 		return nil, sl.Err(op, err)
 	}
@@ -241,7 +241,7 @@ func (r *RoleRepo) DeletePermission(ctx context.Context, permissionID uuid.UUID)
 		DELETE FROM permissions
 		WHERE id = $1`
 
-	result, err := r.pool.Exec(ctx, query, permissionID)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, permissionID)
 
 	if err != nil {
 		var pgErr *pgconn.PgError

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/domain"
 	"github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/lib/sl"
 	"github.com/google/uuid"
@@ -28,10 +29,21 @@ func (r *UserRepo) CreateUser(ctx context.Context, user *domain.User) error {
 		VALUES ($1)
 		RETURNING id, created_at, updated_at`
 
-	err := r.pool.QueryRow(ctx, query, user.Status).
+	err := getDB(ctx, r.pool).QueryRow(ctx, query, user.Status).
 		Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case "23505": // Unique violation
+				return sl.Err(op, domain.ErrUserAlreadyExists)
+			case "23514": // Check violation
+				return sl.Err(op, domain.ErrInvalidUserStatus)
+			case "23502": // Not null violation
+				return sl.Err(op, domain.ErrUserStatusRequired)
+			}
+		}
 		return sl.Err(op, fmt.Errorf("insert user: %w", err))
 	}
 
@@ -45,7 +57,7 @@ func (r *UserRepo) CreateCredentials(ctx context.Context, cred *domain.Credentia
 		INSERT INTO user_credentials (user_id, email, password_hash, email_verified)
 		VALUES ($1, $2, $3, $4)`
 
-	_, err := r.pool.Exec(ctx, query,
+	_, err := getDB(ctx, r.pool).Exec(ctx, query,
 		cred.UserID, cred.Email, cred.PasswordHash, cred.EmailVerified,
 	)
 	if err != nil {
@@ -67,7 +79,7 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User,
 		FROM users
 		WHERE id = $1`
 
-	rows, err := r.pool.Query(ctx, query, id)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, id)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -93,7 +105,7 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*domain.Us
 		JOIN user_credentials uc ON uc.user_id = u.id
 		WHERE uc.email = $1`
 
-	rows, err := r.pool.Query(ctx, query, email)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, email)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -118,7 +130,7 @@ func (r *UserRepo) UpdateStatus(ctx context.Context, id uuid.UUID, status domain
 		SET status = $1, updated_at = NOW()
 		WHERE id = $2`
 
-	result, err := r.pool.Exec(ctx, query, status, id)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, status, id)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("update: %w", err))
 	}
@@ -140,7 +152,7 @@ func (r *UserRepo) GetCredentials(ctx context.Context, userID uuid.UUID) (*domai
 		FROM user_credentials
 		WHERE user_id = $1`
 
-	rows, err := r.pool.Query(ctx, query, userID)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, userID)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -168,7 +180,7 @@ func (r *UserRepo) UpdateCredentials(ctx context.Context, cred *domain.Credentia
 		    last_password_change  = $4
 		WHERE user_id = $5`
 
-	result, err := r.pool.Exec(ctx, query,
+	result, err := getDB(ctx, r.pool).Exec(ctx, query,
 		cred.PasswordHash,
 		cred.FailedLoginAttempts,
 		cred.LockedUntil,
@@ -200,7 +212,7 @@ func (r *UserRepo) GetUserWithRoles(ctx context.Context, userID uuid.UUID, appID
 		LEFT JOIN roles r       ON r.id = ur.role_id AND r.app_id = $2
 		WHERE u.id = $1`
 
-	rows, err := r.pool.Query(ctx, query, userID, appID)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, userID, appID)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -260,7 +272,7 @@ func (r *UserRepo) CreateIdentity(ctx context.Context, identity *domain.UserIden
 		VALUES ($1, $2, $3)
 		RETURNING id, created_at`
 
-	err := r.pool.QueryRow(ctx, query,
+	err := getDB(ctx, r.pool).QueryRow(ctx, query,
 		identity.UserID, identity.Provider, identity.ProviderUserID,
 	).Scan(&identity.ID, &identity.CreatedAt)
 
@@ -283,7 +295,7 @@ func (r *UserRepo) GetIdentity(ctx context.Context, provider domain.OAuthProvide
 		FROM user_identities
 		WHERE provider = $1 AND provider_user_id = $2`
 
-	rows, err := r.pool.Query(ctx, query, provider, providerUserID)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, provider, providerUserID)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -313,7 +325,7 @@ func (r *UserRepo) ListByApp(ctx context.Context, appID uuid.UUID) ([]domain.Use
 		JOIN roles r       ON r.id = ur.role_id AND r.app_id = $1
 		ORDER BY u.created_at DESC`
 
-	rows, err := r.pool.Query(ctx, query, appID)
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, appID)
 	if err != nil {
 		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
 	}
@@ -339,7 +351,7 @@ func (r *UserRepo) AssignRole(ctx context.Context, userID, roleID uuid.UUID) err
 		VALUES ($1, $2)
 		ON CONFLICT DO NOTHING`
 
-	_, err := r.pool.Exec(ctx, query, userID, roleID)
+	_, err := getDB(ctx, r.pool).Exec(ctx, query, userID, roleID)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
@@ -358,7 +370,7 @@ func (r *UserRepo) RemoveRole(ctx context.Context, userID, roleID uuid.UUID) err
 		DELETE FROM user_roles
 		WHERE user_id = $1 AND role_id = $2`
 
-	result, err := r.pool.Exec(ctx, query, userID, roleID)
+	result, err := getDB(ctx, r.pool).Exec(ctx, query, userID, roleID)
 	if err != nil {
 		return sl.Err(op, fmt.Errorf("remove role: %w", err))
 	}

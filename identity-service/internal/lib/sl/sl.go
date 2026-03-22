@@ -1,7 +1,10 @@
 // Package sl предоставляет утилиты для логирования ошибок с контекстом операции.
 package sl
 
-import "fmt"
+import (
+	"fmt"
+	"log/slog"
+)
 
 // Err оборачивает ошибку, добавляя имя операции.
 // Если err == nil, возвращает nil.
@@ -17,4 +20,8 @@ func Err(op string, err error) error {
 		return nil
 	}
 	return fmt.Errorf("%s: %w", op, err)
+}
+
+func ErrAttr(err error) slog.Attr {
+	return slog.String("error", err.Error())
 }

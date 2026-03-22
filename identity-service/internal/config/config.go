@@ -34,6 +34,7 @@ type Config struct {
 	Database DatabaseConfig `yaml:"database"`
 	GRPC     GRPCConfig     `yaml:"grpc"`
 	JWT      JWTConfig      `yaml:"jwt"`
+	OAuth    OAuthConfig    `yaml:"oauth"`
 	Secrets  Secrets        `yaml:"-"`
 }
 
@@ -60,6 +61,7 @@ type JWTConfig struct {
 type Secrets struct {
 	Database DatabaseSecrets
 	JWT      JWTSecrets
+	OAuth    OAuthSecrets
 }
 
 type DatabaseSecrets struct {
@@ -69,6 +71,23 @@ type DatabaseSecrets struct {
 
 type JWTSecrets struct {
 	Secret []byte
+}
+
+type OAuthConfig struct {
+	Google OAuthProviderConfig `yaml:"google"`
+	GitHub OAuthProviderConfig `yaml:"github"`
+}
+
+type OAuthProviderConfig struct {
+	RedirectURI string `yaml:"redirect_uri"`
+	Enabled     bool   `yaml:"enabled"`
+}
+
+type OAuthSecrets struct {
+	GoogleClientID     string
+	GoogleClientSecret string
+	GitHubClientID     string
+	GitHubClientSecret string
 }
 
 // GetDSN строит URL-формат который понимает pgx/pgxpool:

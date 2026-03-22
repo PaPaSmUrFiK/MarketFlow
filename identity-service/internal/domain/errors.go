@@ -12,6 +12,19 @@ var (
 	ErrIdentityAlreadyExists = errors.New("identity already exists")
 	ErrIdentityNotFound      = errors.New("identity not found")
 	ErrUserOrRoleNotFound    = errors.New("user or role not found")
+	ErrUserAlreadyExists     = errors.New("user already exists")
+	ErrInvalidUserStatus     = errors.New("invalid user status")
+	ErrUserStatusRequired    = errors.New("user status is required")
+	ErrUserNotCreated        = errors.New("user was not created")
+
+	// Registration
+	ErrPasswordTooWeak    = errors.New("password too weak")
+	ErrPasswordRequired   = errors.New("password is required")
+	ErrEmailRequired      = errors.New("email is required")
+	ErrInvalidEmailFormat = errors.New("invalid email format")
+	ErrAppNotFound        = errors.New("application not found")
+	ErrAppCodeRequired    = errors.New("application code is required")
+	ErrInvalidIPAddress   = errors.New("invalid IP address")
 
 	// Session
 	ErrSessionRevoked                  = errors.New("session revoked")       // используется в RevokeSession
@@ -42,4 +55,5 @@ var (
 	// General
 	ErrPermissionDenied = errors.New("permission denied")
 	ErrNotImplemented   = errors.New("not implemented")
+	ErrInternal         = errors.New("internal error")
 )
