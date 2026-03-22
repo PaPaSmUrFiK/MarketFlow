@@ -100,7 +100,7 @@ func (x *RegisterRequest) GetIpAddress() string {
 
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Tokens        *AuthTokens            `protobuf:"bytes,2,opt,name=tokens,proto3" json:"tokens,omitempty"`
+	Tokens        *AuthTokens            `protobuf:"bytes,1,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -787,7 +787,7 @@ const file_identity_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"ip_address\x18\x05 \x01(\tR\tipAddress\"C\n" +
 	"\x10RegisterResponse\x12/\n" +
-	"\x06tokens\x18\x02 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"\x95\x01\n" +
+	"\x06tokens\x18\x01 \x01(\v2\x17.identity.v1.AuthTokensR\x06tokens\"\x95\x01\n" +
 	"\fLoginRequest\x12\x15\n" +
 	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +

@@ -26,7 +26,7 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-  AuthTokens tokens = 2;
+  AuthTokens tokens = 1;
 }
 
 // Login
