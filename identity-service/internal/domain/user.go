@@ -16,6 +16,7 @@ const (
 type User struct {
 	ID        uuid.UUID  `db:"id"`
 	Status    UserStatus `db:"status"`
+	Email     string     `db:"email"`
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
 	Roles     []Role     `db:"-"`

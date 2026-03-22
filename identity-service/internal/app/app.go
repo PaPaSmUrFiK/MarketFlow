@@ -63,7 +63,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	userSvc := user.New(userRepo, sessionRepo, log)
 	adminSvc := admin.New(userRepo, roleRepo, appRepo, log)
 
-	grpcApp := appgrpc.New(log, authSvc, userSvc, adminSvc, cfg.GRPC.Port)
+	grpcApp := appgrpc.New(log, authSvc, userSvc, adminSvc, jwtManager, cfg.GRPC.Port)
 
 	return &App{GRPCSrv: grpcApp}
 }

@@ -7,10 +7,17 @@ import (
 	authgrpc "github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/transport/grpc/auth"
 	usergrpc "github.com/PaPaSmUrFiK/MarketFlow/identity-service/internal/transport/grpc/user"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log/slog"
 	"net"
 	"strconv"
+	"time"
 )
+
+type jwtTTLProvider interface {
+	AccessTTL() time.Duration
+	RefreshTTL() time.Duration
+}
 
 type App struct {
 	log        *slog.Logger
@@ -22,12 +29,17 @@ func New(log *slog.Logger,
 	authService authgrpc.Service,
 	userService usergrpc.Service,
 	adminService admingrpc.Service,
+	jwtManager jwtTTLProvider,
 	port int,
 ) *App {
 	gRPCServer := grpc.NewServer()
-	authgrpc.Register(gRPCServer, authService)
+	authgrpc.Register(gRPCServer, authService, jwtManager)
 	usergrpc.Register(gRPCServer, userService)
 	admingrpc.Register(gRPCServer, adminService)
+
+	// Reflection позволяет grpcurl и Postman видеть методы без proto файлов
+	reflection.Register(gRPCServer)
+
 	return &App{log, gRPCServer, port}
 }
 

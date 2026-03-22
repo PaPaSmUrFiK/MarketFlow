@@ -203,13 +203,15 @@ func (r *UserRepo) GetUserWithRoles(ctx context.Context, userID uuid.UUID, appID
 
 	query := `
 		SELECT u.id, u.status, u.created_at, u.updated_at,
-		       r.id          AS role_id,
-		       r.app_id      AS role_app_id,
-		       r.code        AS role_code,
-		       r.description AS role_description
+			   COALESCE(uc.email, '') AS email,   -- ← добавить
+			   r.id      AS role_id,
+			   r.app_id  AS role_app_id,
+			   r.code    AS role_code,
+			   r.description AS role_description
 		FROM users u
+		LEFT JOIN user_credentials uc ON uc.user_id = u.id   -- ← добавить
 		LEFT JOIN user_roles ur ON ur.user_id = u.id
-		LEFT JOIN roles r       ON r.id = ur.role_id AND r.app_id = $2
+		LEFT JOIN roles r ON r.id = ur.role_id AND r.app_id = $2
 		WHERE u.id = $1`
 
 	rows, err := getDB(ctx, r.pool).Query(ctx, query, userID, appID)
@@ -221,7 +223,6 @@ func (r *UserRepo) GetUserWithRoles(ctx context.Context, userID uuid.UUID, appID
 	var user *domain.User
 
 	for rows.Next() {
-		// Поля роли nullable — LEFT JOIN может вернуть NULL если ролей нет
 		var (
 			roleID          *uuid.UUID
 			roleAppID       *uuid.UUID
@@ -229,14 +230,12 @@ func (r *UserRepo) GetUserWithRoles(ctx context.Context, userID uuid.UUID, appID
 			roleDescription *string
 		)
 
-		// Один Scan на строку — читаем все поля сразу
-		// Если user == nil, значит это первая строка — инициализируем
 		if user == nil {
 			user = &domain.User{}
 		}
 
 		if err := rows.Scan(
-			&user.ID, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+			&user.ID, &user.Status, &user.CreatedAt, &user.UpdatedAt, &user.Email,
 			&roleID, &roleAppID, &roleCode, &roleDescription,
 		); err != nil {
 			return nil, sl.Err(op, fmt.Errorf("scan: %w", err))
