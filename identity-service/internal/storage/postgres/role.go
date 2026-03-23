@@ -234,6 +234,31 @@ func (r *RoleRepo) GetPermissionByID(ctx context.Context, id uuid.UUID) (*domain
 	return &perm, nil
 }
 
+func (r *RoleRepo) GetPermissionByCode(ctx context.Context, appID uuid.UUID, code string) (*domain.Permission, error) {
+	const op = "storage.postgres.RoleRepo.GetPermissionByCode"
+
+	query := `
+		SELECT id, app_id, code, description
+		FROM permissions
+		WHERE app_id = $1 AND code = $2`
+
+	rows, err := getDB(ctx, r.pool).Query(ctx, query, appID, code)
+	if err != nil {
+		return nil, sl.Err(op, fmt.Errorf("query: %w", err))
+	}
+	defer rows.Close()
+
+	perm, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[domain.Permission])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, sl.Err(op, domain.ErrPermissionNotFound)
+		}
+		return nil, sl.Err(op, fmt.Errorf("collect row: %w", err))
+	}
+
+	return &perm, nil
+}
+
 func (r *RoleRepo) DeletePermission(ctx context.Context, permissionID uuid.UUID) error {
 	const op = "storage.postgres.DeletePermission"
 
